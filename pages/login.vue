@@ -2,78 +2,93 @@
   <section class="login-container">
     <div class="form-wrapper">
       <div class="logo-container">
-        <img
+        <NuxtImg
           src="/img/logo_white.svg"
           alt="BetterFly logo"
           class="w-[200px] h-[36px]"
         />
       </div>
 
-      <form @submit.prevent="handleLogin" class="login-form">
-        <el-alert
-          v-if="error"
-          :title="error"
-          type="error"
-          :closable="false"
-          class="mb-4"
-        />
-        <el-input v-model="email" type="email" placeholder="Email" size="large">
-          <template #prefix>
-            <el-icon><Message /></el-icon>
-          </template>
-        </el-input>
+      <form class="login-form" @submit.prevent="handleLogin">
+        <Alert v-if="error" variant="destructive" class="mb-4">
+          <AlertCircleIcon />
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>
+            <p>{{ error }}</p>
+          </AlertDescription>
+        </Alert>
 
-        <el-input
-          v-model="password"
-          type="password"
-          placeholder="Password"
-          size="large"
-          show-password
-        >
-          <template #prefix>
-            <el-icon><Lock /></el-icon>
-          </template>
-        </el-input>
+        <div class="relative w-full max-w-sm items-center">
+          <Input
+            v-model="email"
+            type="email"
+            placeholder="Email"
+            size="large"
+            class="pl-10"
+          />
+          <span
+            class="absolute start-0 inset-y-0 flex items-center justify-center px-2"
+          >
+            <Icon name="tabler:mail" class="size-6 text-muted-foreground" />
+          </span>
+        </div>
 
-        <el-button
-          type="primary"
+        <div class="relative w-full max-w-sm items-center">
+          <Input
+            v-model="password"
+            type="password"
+            placeholder="Password"
+            size="large"
+            class="pl-10"
+          />
+          <span
+            class="absolute start-0 inset-y-0 flex items-center justify-center px-2"
+          >
+            <Icon
+              name="tabler:lock-password"
+              class="size-6 text-muted-foreground"
+            />
+          </span>
+        </div>
+
+        <Button
+          variant="primary"
           native-type="submit"
           size="large"
           class="submit-btn"
         >
           Login
-        </el-button>
+        </Button>
 
-        <div class="register-link">
-          Not enrolled yet? <NuxtLink to="/register">Register now!</NuxtLink>
-        </div>
+        <small class="register-link">
+          Not enrolled yet?
+          <NuxtLink class="font-bold" to="/register">Register now!</NuxtLink>
+        </small>
 
-        <div class="divider">
+        <!-- <div class="divider">
           <span>or continue with</span>
-        </div>
+        </div> -->
 
         <div class="social-login">
-          <button class="social-icon">
-            <img
-              src="https://www.google.com/favicon.ico"
-              alt="Google"
-              class="w-8 h-8"
-            />
-          </button>
-          <button class="social-icon">
-            <img
-              src="https://www.facebook.com/favicon.ico"
-              alt="Facebook"
-              class="w-8 h-8"
-            />
-          </button>
-          <button class="social-icon">
-            <img
-              src="https://www.apple.com/favicon.ico"
-              alt="Apple"
-              class="w-8 h-8"
-            />
-          </button>
+          <Button
+            class="social-icon"
+            @click.prevent="loginWithGoogle"
+            :disabled="isLoggingGoogle"
+          >
+            <Icon v-if="!isLoggingGoogle" name="tabler:brand-google" />
+            <Icon v-else name="tabler:loader" class="animate-spin" />
+            Login with Google
+          </Button>
+
+          <Button class="social-icon" disabled>
+            <Icon name="tabler:brand-apple" />
+            Login with Apple
+          </Button>
+
+          <Button class="social-icon" disabled>
+            <Icon name="tabler:brand-facebook" />
+            Login with Facebook
+          </Button>
         </div>
       </form>
 
@@ -84,43 +99,60 @@
 
 <script setup>
 import { ref } from "vue";
-import { Message, Lock } from "@element-plus/icons-vue";
 import { useRouter } from "vue-router";
-import { useAuthStore } from "~/stores/auth";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+
+import { signIn } from "~/lib/auth-client";
 
 definePageMeta({
   layout: "login",
 });
 
 const router = useRouter();
-const auth = useAuthStore();
+
 const email = ref("");
 const password = ref("");
 const loading = ref(false);
 const error = ref("");
+const isLoggingGoogle = ref(false);
 
 const handleLogin = async () => {
   try {
     loading.value = true;
     error.value = "";
 
-    const response = await $fetch("/api/auth/login", {
-      method: "POST",
-      body: {
+    await signIn.email(
+      {
         email: email.value,
         password: password.value,
+        callbackURL: "/",
+        rememberMe: false,
       },
-    });
-
-    auth.setAuth(response);
-    // Let the auth store handle token storage
-    auth.setToken(response.token);
-    router.push("/");
+      {
+        onSuccess: () => {
+          router.push("/");
+        },
+        onError: (e) => {
+          console.log(e.error.message);
+          error.value = e.error.message;
+        },
+      }
+    );
   } catch (e) {
+    console.log(e);
     error.value = e.data?.message || "An error occurred during login";
   } finally {
     loading.value = false;
   }
+};
+
+const loginWithGoogle = async () => {
+  isLoggingGoogle.value = true;
+  await signIn.social({
+    provider: "google",
+  });
 };
 </script>
 
@@ -156,13 +188,15 @@ const handleLogin = async () => {
 .login-form {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.5rem;
 }
 
 .submit-btn {
   margin-top: 1rem;
+  padding: 0.5rem 1rem;
   background-color: #4caf50;
   border: none;
+  cursor: pointer;
 }
 
 .submit-btn:hover {
@@ -201,9 +235,8 @@ const handleLogin = async () => {
 }
 
 .register-link {
-  margin-top: 1rem;
-  margin-bottom: 1rem;
-  text-align: center;
+  margin-bottom: 1.5rem;
+  text-align: end;
   color: rgba(255, 255, 255, 0.6);
 }
 
@@ -218,20 +251,21 @@ const handleLogin = async () => {
 
 .social-login {
   display: flex;
+  flex-flow: column nowrap;
   justify-content: center;
+  align-items: center;
   gap: 1rem;
+  width: 100%;
 }
 
 .social-icon {
-  background: transparent;
-  border: none;
-  padding: 0.5rem;
   cursor: pointer;
   transition: transform 0.2s ease;
+  width: 250px;
 }
 
 .social-icon:hover {
-  transform: scale(1.2);
+  transform: scale(1.05);
 }
 
 .home-link {

@@ -1,19 +1,21 @@
+import tailwindcss from "@tailwindcss/vite";
+
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   compatibilityDate: "2024-04-03",
   devtools: { enabled: true },
+  css: ["~/assets/css/tailwind.css"],
+  vite: {
+    plugins: [tailwindcss()],
+  },
   modules: [
-    "@nuxtjs/tailwindcss",
-    "@element-plus/nuxt",
-    "@vueuse/nuxt",
     "@nuxt/eslint",
     "@nuxt/fonts",
-    "@nuxtjs/seo",
     "@nuxt/icon",
     "@nuxtjs/color-mode",
     "@nuxt/image",
-    ["@nuxtjs/robots", { configPath: "~/config/robots.config" }],
     "@pinia/nuxt",
+    "shadcn-nuxt",
   ],
   colorMode: {
     preference: "dark", // default value of $colorMode.preference
@@ -31,5 +33,16 @@ export default defineNuxtConfig({
   },
   routeRules: {
     "/users": { ssr: true },
+  },
+  shadcn: {
+    /**
+     * Prefix for all the imported component
+     */
+    prefix: "",
+    /**
+     * Directory that the component lives in.
+     * @default "./components/ui"
+     */
+    componentDir: "./components/ui",
   },
 });

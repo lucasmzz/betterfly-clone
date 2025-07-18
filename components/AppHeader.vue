@@ -1,13 +1,13 @@
 <template>
   <header
-    class="h-[62px] w-screen fixed top-0 bg-transparent flex items-center justify-between px-4 z-10"
+    class="h-[62px] w-screen fixed top-0 bg-transparent flex items-center justify-between px-4 z-60"
   >
     <div>
-      <img
+      <NuxtImg
         src="/img/logo_white.svg"
         alt="BetterFly logo"
         class="w-[136px] h-[24px]"
-      ></img>
+      />
     </div>
 
     <div class="h-full flex items-center gap-4">
@@ -19,7 +19,7 @@
         </p>
       </NuxtLink>
 
-      <button
+      <Button
         class="group h-10 w-10 flex items-center justify-center"
         @click="toggleMenu"
       >
@@ -49,7 +49,7 @@
             "
           />
         </div>
-      </button>
+      </Button>
     </div>
   </header>
 </template>

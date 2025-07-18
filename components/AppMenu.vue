@@ -1,78 +1,70 @@
 <template>
   <aside
-    class="fixed -top-[1000px] left-0 w-screen h-screen pt-[100px] -z-1 transition-all ease-out duration-300 bg-gradient-to-br from-[#1a1a1a] to-[#2a2a2a]"
+    class="fixed -top-[1000px] left-0 w-screen h-screen pt-[100px] z-50 transition-all ease-out duration-300 bg-gradient-to-br from-[#1a1a1a] to-[#2a2a2a]"
     :class="{
       'translate-y-[1000px]': appStore.menuVisible,
     }"
   >
     <section class="menu-content">
       <div class="menu-links">
-        <div v-if="auth.isAuthenticated" class="welcome-message">
-          Hi {{ auth.user?.name }}!
+        <div v-if="session.data" class="welcome-message">
+          Hi {{ session.data.user.name }}!
         </div>
+
         <NuxtLink
-          v-if="!auth.isAuthenticated"
+          v-if="!session.data"
           to="/login"
-          @click="closeMenu"
           class="menu-link"
+          @click="closeMenu"
         >
-          <el-button size="large" class="menu-button">
-            <el-icon class="mr-2"><User /></el-icon>
+          <Button class="menu-button" @click="closeMenu">
+            <Icon name="ph:sign-in-bold" class="mr-2" />
             Login
-          </el-button>
+          </Button>
         </NuxtLink>
 
-        <NuxtLink
-          v-if="auth.isAuthenticated"
-          to="/dashboard"
-          @click="closeMenu"
-          class="menu-link"
-        >
-          <el-button size="large" class="menu-button">
-            <el-icon class="mr-2"><Setting /></el-icon>
+        <NuxtLink v-else to="/dashboard" class="menu-link" @click="closeMenu">
+          <Button size="large" class="menu-button">
+            <Icon name="game-icons:settings-knobs" class="mr-2" />
             Dashboard
-          </el-button>
+          </Button>
         </NuxtLink>
 
-        <NuxtLink to="/about" @click="closeMenu" class="menu-link">
-          <el-button size="large" class="menu-button">
-            <el-icon class="mr-2"><InfoFilled /></el-icon>
+        <NuxtLink to="/about" class="menu-link" @click="closeMenu">
+          <Button size="large" class="menu-button">
+            <Icon name="ph:question-bold" class="mr-2" />
             About Us
-          </el-button>
+          </Button>
         </NuxtLink>
 
-        <el-button
-          v-if="auth.isAuthenticated"
+        <Button
+          v-if="session.data"
           size="large"
           class="menu-button"
           @click="handleLogout"
         >
-          <el-icon class="mr-2"><SwitchButton /></el-icon>
+          <Icon name="ph:sign-out-bold" class="mr-2" />
           Logout
-        </el-button>
+        </Button>
       </div>
     </section>
   </aside>
 </template>
 
 <script setup>
-import {
-  User,
-  InfoFilled,
-  SwitchButton,
-  Setting,
-} from "@element-plus/icons-vue";
+import { useSession, signOut } from "~/lib/auth-client";
+import { Button } from "@/components/ui/button";
+
 const appStore = useAppStore();
-const auth = useAuthStore();
 const router = useRouter();
+const session = useSession();
 
-// Initialize auth state
-auth.init();
-
-const closeMenu = () => (appStore.menuVisible = false);
+const closeMenu = () => {
+  appStore.menuVisible = false;
+};
 
 const handleLogout = () => {
-  auth.clearAuth();
+  signOut();
   closeMenu();
   router.push("/login");
 };
@@ -111,11 +103,12 @@ const handleLogout = () => {
   align-items: center;
   justify-content: center;
   transition: all 0.3s ease;
+  cursor: pointer;
 
   &:hover {
     background: rgba(76, 175, 80, 0.8);
     border-color: rgba(76, 175, 80, 0.9);
-    transform: translateY(-2px);
+    transform: scale(1.02);
   }
 }
 </style>

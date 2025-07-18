@@ -3,7 +3,7 @@ services:
     build: .
     container_name: nuxt-dev-app
     ports:
-      - "3000:3000"
+      - "4500:3000"
     volumes:
       - .:/app
       - /app/node_modules # Prevents overriding node_modules with local copy

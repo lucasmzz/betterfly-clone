@@ -2,38 +2,38 @@
   <section class="login-container">
     <div class="form-wrapper">
       <h1>Register</h1>
-      <form @submit.prevent="handleSubmit" class="register-form">
+      <form class="register-form" @submit.prevent="handleSubmit">
         <div class="form-group">
           <label for="email">Email</label>
           <input
-            type="email"
             id="email"
             v-model="email"
+            type="email"
             required
             class="form-input"
-          />
+          >
         </div>
         <div class="form-group">
           <label for="password">Password</label>
           <input
-            type="password"
             id="password"
             v-model="password"
+            type="password"
             required
             class="form-input"
-          />
+          >
         </div>
         <div class="form-group">
           <label for="confirmPassword">Confirm Password</label>
           <input
-            type="password"
             id="confirmPassword"
             v-model="confirmPassword"
+            type="password"
             required
             class="form-input"
-          />
+          >
         </div>
-        <div class="error" v-if="error">{{ error }}</div>
+        <div v-if="error" class="error">{{ error }}</div>
         <button type="submit" class="submit-btn">Register</button>
       </form>
       <div class="login-link">
@@ -45,6 +45,7 @@
 
 <script setup>
 import { ref } from "vue";
+import { signUp } from "~/lib/auth-client";
 
 definePageMeta({
   layout: "login",
@@ -64,24 +65,34 @@ const handleSubmit = async () => {
   }
 
   try {
-    const response = await fetch("/api/auth/register", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
+    const { error: signUpError } = await signUp.email(
+      {
         email: email.value,
-        password: password.value,
-      }),
-    });
-
-    if (!response.ok) {
-      const data = await response.json();
-      throw new Error(data.message || "Registration failed");
+        password: password.value || "1234abcd",
+        name: email.value,
+        image:
+          "https://e7.pngegg.com/pngimages/84/165/png-clipart-united-states-avatar-organization-information-user-avatar-service-computer-wallpaper.png", // User image URL (optional)
+        callbackURL: "/",
+        // Ensure password is always passed to backend for user creation
+      },
+      {
+        onRequest: (ctx) => {
+          //show loading
+          console.log("registering...", ctx);
+        },
+        onSuccess: () => {
+          //redirect to the dashboard or sign in page
+          navigateTo("/login");
+        },
+        onError: (ctx) => {
+          // display the error message
+          alert(ctx.error.message);
+        },
+      }
+    );
+    if (signUpError) {
+      error.value = signUpError.message;
     }
-
-    // Redirect to login page after successful registration
-    navigateTo("/login");
   } catch (e) {
     error.value = e.message;
   }

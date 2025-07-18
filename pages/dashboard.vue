@@ -2,13 +2,13 @@
   <section class="dashboard-container">
     <div class="form-wrapper">
       <h1>User Dashboard</h1>
-      <form @submit.prevent="handleSubmit" class="dashboard-form">
+      <form class="dashboard-form" @submit.prevent="handleSubmit">
         <div class="form-group">
           <label for="name">Name</label>
           <input
-            type="text"
             id="name"
             v-model="name"
+            type="text"
             required
             class="form-input"
           />
@@ -16,15 +16,15 @@
         <div class="form-group">
           <label for="email">Email</label>
           <input
-            type="email"
             id="email"
             v-model="email"
+            type="email"
             required
             class="form-input"
           />
         </div>
-        <div class="error" v-if="error">{{ error }}</div>
-        <div class="success" v-if="success">{{ success }}</div>
+        <div v-if="error" class="error">{{ error }}</div>
+        <div v-if="success" class="success">{{ success }}</div>
         <button type="submit" class="submit-btn">Update Profile</button>
       </form>
     </div>
@@ -32,51 +32,36 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
-import { useAuthStore } from "~/stores/auth";
+import { ref } from "vue";
 
-definePageMeta({
-  middleware: "auth",
-});
-
-const auth = useAuthStore();
 const name = ref("");
 const email = ref("");
 const error = ref("");
 const success = ref("");
-
-onMounted(() => {
-  if (auth.user) {
-    name.value = auth.user.name;
-    email.value = auth.user.email;
-  }
-});
 
 const handleSubmit = async () => {
   error.value = "";
   success.value = "";
 
   try {
-    const response = await fetch("/api/auth/update-profile", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${auth.token}`,
-      },
-      body: JSON.stringify({
-        name: name.value,
-        email: email.value,
-      }),
-    });
-
-    if (!response.ok) {
-      const data = await response.json();
-      throw new Error(data.message || "Failed to update profile");
-    }
-
-    const data = await response.json();
-    auth.updateUser(data.user);
-    success.value = "Profile updated successfully";
+    // const response = await fetch("/api/auth/update-profile", {
+    //   method: "POST",
+    //   headers: {
+    //     "Content-Type": "application/json",
+    //     Authorization: `Bearer ${auth.token}`,
+    //   },
+    //   body: JSON.stringify({
+    //     name: name.value,
+    //     email: email.value,
+    //   }),
+    // });
+    // if (!response.ok) {
+    //   const data = await response.json();
+    //   throw new Error(data.message || "Failed to update profile");
+    // }
+    // const data = await response.json();
+    // auth.updateUser(data.user);
+    // success.value = "Profile updated successfully";
   } catch (e) {
     error.value = e.message;
   }
